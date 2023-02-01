@@ -360,7 +360,7 @@ namespace ContactConsole.Services
 
                     case "8":
                         Console.WriteLine("Postal Code: ");
-                        contact.City = Console.ReadLine();
+                        contact.PostalCode = Console.ReadLine();
                         Console.Clear();
                         break;
 

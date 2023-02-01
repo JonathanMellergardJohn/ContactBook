@@ -18,7 +18,8 @@ namespace ContactConsole
 }
 /*
 TO-DO
-    -Set up GitHub!
+    -Check contact book useability
+    -FIX EditContact, input to Postal Code goes into City!
     -Remove/refactor methods:
         1. Remove AllContactsMenu(), replace with EditContact() and SelectContact()
         2. Remove WriteFile(). 
@@ -34,7 +35,8 @@ TO-DO
         4. UpDateContactList() should be redundant??
             Used in:
                 DeleteContact()
-
+        COMPLETED:
+            -Set up GitHub!
 LIST OF ESSENTIAL METHODS
 EditContact() 
     DisplayContactForEditing()
