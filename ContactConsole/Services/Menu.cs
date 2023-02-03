@@ -17,10 +17,8 @@ namespace ContactConsole.Services
     internal class Menu
     {
         // DISPLAY MAIN MENU SERVICE
-
         public static void MainMenu()
         {
-            FileService fs = new FileService();
             // bool for entering/exiting program loop; strings that hold display info
             bool programRunning = true;
 
@@ -43,15 +41,15 @@ namespace ContactConsole.Services
                     // "view all contacts"
                     case "1":
                         Console.Clear();
-                        AllContactsMenu(ConvertJsonToList(fs.ReadFromFile()));
+                        EditContact(SelectContact(FileService.ReadFromFile()));
                         break;
                     // "search contacts"
                     case "2":
-                        EditContact(SelectContact(SearchForContacts(ConvertJsonToList(fs.ReadFromFile()))));
+                        EditContact(SelectContact(SearchForContacts(FileService.ReadFromFile())));
                         break;
                     // "add a contact"
                     case "3":
-                        AddContact(fs);
+                        AddContact();
                         break;
                     // "exit address book app"
                     case "4":
@@ -73,79 +71,7 @@ namespace ContactConsole.Services
         // NOTE: ResetConsole() was mostly a test to see if i understood the 'ref' keyword.
         // Should probably not be used, though it saves a couple of lines of code
 
-            // File Services
-        public static void WriteFile(List<Contact> list)
-        {   
-            SetLastIndex(list);
-            string json = JsonSerializer.Serialize(list);
-            string filePath = $"{Directory.GetCurrentDirectory()}\\contacts.json";
-
-            StreamWriter writer = new StreamWriter(filePath);
-            writer.Write(json);
-            writer.Close();
-        }
-        public static string ConvertListToJson(List<Contact> list)
-        {
-            SetLastIndex(list);
-            string json = JsonSerializer.Serialize(list);
-
-            return json;
-        }
-
-        public static string ReadFile(string filePath)
-        {
-            // NOTE: This method can be improved by using an overload taking two arguments,
-            // where the second argument is the method to employ ('createFile()') if file does not exist. If ONE argument
-            // is used, an error message would be logged ("file does not exist"), if TWO arguments
-            // are used, the file to be read is created.
-           
-            bool fileExists = File.Exists(filePath);
-            if (!fileExists)
-            {
-                // NOTE: check convention for using StreamWriter/StreamReader. 
-                // Can brackets '()' and 'using' be employed and .Close() skipped??
-                StreamWriter writer = new StreamWriter(filePath);
-                writer.Write("[]");
-                writer.Close();
-            }
-
-            StreamReader reader = new StreamReader(filePath);
-            string json = reader.ReadToEnd();
-            reader.Close();
-
-            return json;
-
-        }
-
-            // Contact Services
-
-        //Below method is redundant and should be deleted!
-        public static List<Contact> UpdateContactList(string json)
-        {
-            List<Contact> contactList = new List<Contact>();
-
-            if (json != "[]")
-            {
-                contactList = JsonSerializer.Deserialize<List<Contact>>(json);
-                SetLastIndex(contactList);
-            }
-
-            return contactList;
-        }
-        public static List<Contact> ConvertJsonToList(string json) 
-        {
-            List<Contact> contactList = new List<Contact>();
-
-            if (json != "[]")
-            {
-                contactList = JsonSerializer.Deserialize<List<Contact>>(json);
-                // This resets the LastIndex property of all contacts in the list.
-                // The property is needed to remove a contact from the contact book.
-                SetLastIndex(contactList);
-            }
-
-            return contactList;
-        }
+        // File Services
         public static List<Contact> DisplayList(List<Contact> contactList)
         {
             int i = 1;
@@ -165,15 +91,6 @@ namespace ContactConsole.Services
             }
 
             return contactList;
-        }
-        public static void SetLastIndex(List<Contact> list)
-        {
-            int i = 0;
-            foreach (Contact contact in list)
-            {
-                contact.LastIndex = i;
-                i++;
-            }
         }
         public static Contact SelectContact(List<Contact> list)
         {
@@ -210,18 +127,19 @@ namespace ContactConsole.Services
                         instructions = $"Selection unavailable. Please input a number between 1 and {list.Count}";
                     }
                 }
-            } else
+            }
+            else
             {
                 selectedContact = null;
                 Console.WriteLine("Exiting to main menu!");
                 Console.ReadLine();
             }
-     
+
             return selectedContact;
         }
         public static Contact GetContactSelection(List<Contact> list)
         {
-            
+
             bool stillSelecting = true;
             string instructions = "";
             Contact selectedContact = null;
@@ -244,23 +162,23 @@ namespace ContactConsole.Services
                     }
                     catch
                     {
-                        if (list.Count > 1 )
+                        if (list.Count > 1)
                         {
-                            instructions =  $"NUM RANGE: Selection out of range. Please type a number between 1 and {list.Count} and press 'enter' key to select a contacto. " +
+                            instructions = $"NUM RANGE: Selection out of range. Please type a number between 1 and {list.Count} and press 'enter' key to select a contacto. " +
                                             $"To return to the main menu, leave line blank and press 'enter' key.";
                         }
                         else
                         {
-                            instructions =  $"NUM RANGE: Selection unavailable. Type 1 and press 'enter' key to select contact '{list[0].FirstName} {list[0].LastName}'." +
+                            instructions = $"NUM RANGE: Selection unavailable. Type 1 and press 'enter' key to select contact '{list[0].FirstName} {list[0].LastName}'." +
                                             $"To return to the main menu, leave line blank and press 'enter' key.";
                         }
-                        
+
                     }
                 }
                 else if (userInput == "")
                 {
                     stillSelecting = false;
-                } 
+                }
                 else
                 {
                     instructions = $"NOT NUM: Selection unavailable. Please type a number between 1 and {list.Count} press 'enter' key to select a contact." +
@@ -274,10 +192,9 @@ namespace ContactConsole.Services
         {
             int index = contactToDelete.LastIndex;
 
-            List<Contact> contactList = UpdateContactList(ReadFile($"{Directory.GetCurrentDirectory()}\\contacts.json"));
+            List<Contact> contactList = FileService.ReadFromFile();
             contactList.RemoveAt(index);
-            SetLastIndex(contactList);
-            WriteFile(contactList);
+            FileService.WriteToFile(contactList);
         }
         public static void EditContact(Contact contactToEdit)
         {
@@ -289,9 +206,9 @@ namespace ContactConsole.Services
                 stillEditing = false;
             }
 
-            Contact contact = contactToEdit;          
+            Contact contact = contactToEdit;
 
-            while (stillEditing) 
+            while (stillEditing)
             {
                 DisplayContactForEditing(contactToEdit);
 
@@ -301,7 +218,7 @@ namespace ContactConsole.Services
                 Console.WriteLine($"2 - Last name: {contact.LastName}\n");
                 */
 
-                Console.WriteLine(  "Select which field you wish to edit according to the enumeration shown above." +
+                Console.WriteLine("Select which field you wish to edit according to the enumeration shown above." +
                                     "\nIf you wish to return to the main menu, press the enter key. If you wish to delete " +
                                     "\n the contact, type DELETE CONTACT in capital letters.");
 
@@ -320,8 +237,8 @@ namespace ContactConsole.Services
                         Console.WriteLine("First Name: ");
                         contact.FirstName = Console.ReadLine();
                         Console.Clear();
-                        break; 
-                    
+                        break;
+
                     case "2":
                         Console.WriteLine("Last Name: ");
                         contact.LastName = Console.ReadLine();
@@ -364,9 +281,9 @@ namespace ContactConsole.Services
                         Console.Clear();
                         break;
 
-                    case "": 
+                    case "":
                         // get an updated list from file
-                        List<Contact> list = GetListFromFile($"{Directory.GetCurrentDirectory()}\\contacts.json");
+                        List<Contact> list = FileService.ReadFromFile();
                         // get index of the contact currently editing
                         int index = contact.LastIndex;
                         // update list by removing at index
@@ -374,44 +291,14 @@ namespace ContactConsole.Services
                         // update list by adding contact
                         list.Add(contact);
                         // write list to file
-                        WriteFile(list);
+                        FileService.WriteToFile(list);
                         stillEditing = false;
                         break;
-                    default: 
+                    default:
                         Console.WriteLine();
                         break;
                 }
             }
-        }
-        public static void AllContactsMenu(List<Contact> list) 
-        {
-            // HEADER
-            Console.WriteLine("  ~~~~~~ CONTACTS ~~~~~~  \n");
-            
-            // INSTRUCTIONS
-            if (list.Count > 1) 
-            {
-                
-                DisplayList(list);
-                Console.WriteLine(  $"Select a contact by its number and press 'enter' key. For instance: to select '{list[1].FirstName}', type 2 in " +
-                                    $"terminal, etc. To return to the main menu, leave the line blank and press 'enter' key.");
-                EditContact(GetContactSelection(list));
-            } else if (list.Count == 1)
-            {
-                DisplayList(list);
-                Console.WriteLine(  "To edit or delete the contact, type the number 1 on the terminal line and press the 'enter' key. To return " +
-                                    "to the main menu, leave the terminal line blank and press the 'enter' key.");
-                EditContact(GetContactSelection(list));
-            } 
-            else
-            {
-                Console.WriteLine("Your contact book is currently empty! Press 'enter' key to return to main menu.");
-                Console.ReadLine();    
-            }
-        }
-        public static List<Contact> GetListFromFile(string path)
-        {
-            return ConvertJsonToList(ReadFile(path));
         }
         public static void DisplayContactForList(Contact contact)
         {
@@ -425,10 +312,10 @@ namespace ContactConsole.Services
                 PropertyInfo pinfo = typeof(Contact).GetProperty(property);
                 object propertyValue = pinfo.GetValue(newContact, null);
 
-                if (propertyValue != "") 
+                if (propertyValue != "")
                 {
                     Console.WriteLine($"{AddSpacesToSentence(property)}: {propertyValue}");
-                } 
+                }
 
                 i++;
             }
@@ -445,7 +332,7 @@ namespace ContactConsole.Services
                 PropertyInfo pinfo = typeof(Contact).GetProperty(property);
                 object propertyValue = pinfo.GetValue(newContact, null);
 
-                    Console.WriteLine($" {i + 1} - {AddSpacesToSentence(property)}: {propertyValue}");
+                Console.WriteLine($" {i + 1} - {AddSpacesToSentence(property)}: {propertyValue}");
 
                 i++;
             }
@@ -487,13 +374,13 @@ namespace ContactConsole.Services
             bool stillSearching = true;
 
 
-            while (stillSearching) 
+            while (stillSearching)
             {
                 Console.WriteLine("Input a search phrase. You may search by last name or first name. To return to main menu, type MAIN MENU and press enter.");
 
                 string searchInput = Console.ReadLine();
 
-                if (searchInput == "MAIN MENU") 
+                if (searchInput == "MAIN MENU")
                 {
                     stillSearching = false;
                     searchMatches = null;
@@ -503,7 +390,8 @@ namespace ContactConsole.Services
                     }
                     Console.ReadLine();
                     continue;
-                } else if (searchInput == "")
+                }
+                else if (searchInput == "")
                 {
                     continue;
                 }
@@ -516,22 +404,23 @@ namespace ContactConsole.Services
                     }
                 }
 
-                if (searchMatches.Count == 0) 
+                if (searchMatches.Count == 0)
                 {
                     Console.WriteLine("No matches found for search. Press 'enter' to initiate a new search.\n");
                     Console.ReadLine();
-                } else
+                }
+                else
                 {
                     stillSearching = false;
                 }
 
             }
-            
+
             // if searchMatches is null, return to main menu!
             return searchMatches;
 
         }
-        public static void AddContact(FileService service)
+        public static void AddContact()
         {
             Console.Clear();
             bool stillEditing = true;
@@ -548,7 +437,7 @@ namespace ContactConsole.Services
                 Console.WriteLine($"2 - Last name: {contact.LastName}\n");
                 */
 
-                Console.WriteLine(  "Select which field you wish to edit according to the enumeration shown above." +
+                Console.WriteLine("Select which field you wish to edit according to the enumeration shown above." +
                                     "\nType SAVE and press 'enter' key if you wish to save the added contact." +
                                     "\n Type CANCEL if you wish to return to the main menu without saving.");
 
@@ -611,21 +500,145 @@ namespace ContactConsole.Services
 
                     case "SAVE":
                         // get an updated list from file
-                        List<Contact> list = ConvertJsonToList(service.ReadFromFile()); 
+                        List<Contact> list = FileService.ReadFromFile();
                         // get index of the contact currently editing
                         list.Add(newContact);
                         // write list to file
-                        service.WriteToFile(ConvertListToJson(list));
+                        FileService.WriteToFile(list);
                         stillEditing = false;
                         break;
                     default:
-                        Console.WriteLine();
+                        Console.WriteLine("Selection unavailable. Press enter to resume.");
+                        Console.ReadLine();
                         break;
                 }
             }
         }
 
+        /*
+        OBSOLETE METHODS
+
+                public static void AllContactsMenu(List<Contact> list)
+        {
+            // HEADER
+            Console.WriteLine("  ~~~~~~ CONTACTS ~~~~~~  \n");
+
+            // INSTRUCTIONS
+            if (list.Count > 1)
+            {
+
+                DisplayList(list);
+                Console.WriteLine($"Select a contact by its number and press 'enter' key. For instance: to select '{list[1].FirstName}', type 2 in " +
+                                    $"terminal, etc. To return to the main menu, leave the line blank and press 'enter' key.");
+                EditContact(GetContactSelection(list));
+            }
+            else if (list.Count == 1)
+            {
+                DisplayList(list);
+                Console.WriteLine("To edit or delete the contact, type the number 1 on the terminal line and press the 'enter' key. To return " +
+                                    "to the main menu, leave the terminal line blank and press the 'enter' key.");
+                EditContact(GetContactSelection(list));
+            }
+            else
+            {
+                Console.WriteLine("Your contact book is currently empty! Press 'enter' key to return to main menu.");
+                Console.ReadLine();
+            }
+        }
+
+                public static void SetLastIndex(List<Contact> list)
+        {
+            int i = 0;
+            foreach (Contact contact in list)
+            {
+                contact.LastIndex = i;
+                i++;
+            }
+        }
+                public static List<Contact> UpdateContactList(string json)
+        {
+            List<Contact> contactList = new List<Contact>();
+
+            if (json != "[]")
+            {
+                contactList = JsonSerializer.Deserialize<List<Contact>>(json);
+                SetLastIndex(contactList);
+            }
+
+            return contactList;
+        }     
+
+                    public static List<Contact> GetListFromFile(string path)
+        {
+            return ConvertJsonToList(ReadFile(path));
+        }
+
+                    public static void DeleteContactOLD(Contact contactToDelete)
+        {
+            int index = contactToDelete.LastIndex;
+
+            List<Contact> contactList = UpdateContactList(ReadFile($"{Directory.GetCurrentDirectory()}\\contacts.json"));
+            contactList.RemoveAt(index);
+            SetLastIndex(contactList);
+            WriteFile(contactList);
+        }
+        
+                public static string ReadFile(string filePath)
+        {
+            // NOTE: This method can be improved by using an overload taking two arguments,
+            // where the second argument is the method to employ ('createFile()') if file does not exist. If ONE argument
+            // is used, an error message would be logged ("file does not exist"), if TWO arguments
+            // are used, the file to be read is created.
+
+            bool fileExists = File.Exists(filePath);
+            if (!fileExists)
+            {
+                // NOTE: check convention for using StreamWriter/StreamReader. 
+                // Can brackets '()' and 'using' be employed and .Close() skipped??
+                StreamWriter writer = new StreamWriter(filePath);
+                writer.Write("[]");
+                writer.Close();
+            }
+
+            StreamReader reader = new StreamReader(filePath);
+            string json = reader.ReadToEnd();
+            reader.Close();
+
+            return json;
+
+        }
+        public static void WriteFile(List<Contact> list)
+        {
+            SetLastIndex(list);
+            string json = JsonSerializer.Serialize(list);
+            string filePath = $"{Directory.GetCurrentDirectory()}\\contacts.json";
+
+            StreamWriter writer = new StreamWriter(filePath);
+            writer.Write(json);
+            writer.Close();
+        }
+        public static string ConvertListToJson(List<Contact> list)
+        {
+            SetLastIndex(list);
+            string json = JsonSerializer.Serialize(list);
+
+            return json;
+        }
+        public static List<Contact> ConvertJsonToList(string json)
+        {
+            List<Contact> contactList = new List<Contact>();
+
+            if (json != "[]")
+            {
+                contactList = JsonSerializer.Deserialize<List<Contact>>(json);
+                // This resets the LastIndex property of all contacts in the list.
+                // The property is needed to remove a contact from the contact book.
+                SetLastIndex(contactList);
+            }
+
+            return contactList;
+        }
+
+        */
     }
-
-
 }

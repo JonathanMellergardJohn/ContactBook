@@ -9,47 +9,49 @@ using System.Threading.Tasks;
 
 namespace ContactConsole.Services
 {
-    internal class FileService
+    public static class FileService
     {
         //PROPERTIES
-        public string FilePath { get; set; } = $"{Directory.GetCurrentDirectory()}\\contacts.json";
+        public static string FilePath { get; set; } = $"{Directory.GetCurrentDirectory()}\\contacts.json";
 
         //METHODS
-        public string ReadFromFile()
+        public static List<Contact> ReadFromFile()
         {
-            // NOTE: This method can be improved by using an overload taking two arguments,
-            // where the second argument is the method to employ ('createFile()') if file does not exist. If ONE argument
-            // is used, an error message would be logged ("file does not exist"), if TWO arguments
-            // are used, the file to be read is created.
-
             bool fileExists = File.Exists(FilePath);
             if (!fileExists)
             {
-                // NOTE: check convention for using StreamWriter/StreamReader. 
-                // Can brackets '()' and 'using' be employed and .Close() skipped??
                 StreamWriter writer = new StreamWriter(FilePath);
                 writer.Write("[]");
                 writer.Close();
+
             }
 
             StreamReader reader = new StreamReader(FilePath);
             string json = reader.ReadToEnd();
             reader.Close();
+            List<Contact> contactList = JsonSerializer.Deserialize<List<Contact>>(json);
 
-            return json;
-
+            return contactList;
         }
 
-        public void WriteToFile(string json)
+        public static void WriteToFile(List<Contact> contactList)
         {
-            StreamWriter writer = new StreamWriter(this.FilePath);
+            //sets .LastIndex property for all Contacts. The .LastIndex property is used when editing and deleting file!
+            int i = 0;
+            foreach (Contact contact in contactList)
+            {
+                contact.LastIndex = i;
+                i++;
+            }
+            string json = JsonSerializer.Serialize(contactList);
+            StreamWriter writer = new StreamWriter(FilePath);
             writer.Write(json);
             writer.Close();
         }
 
-        public void SetFile(string directory, string fileName ) 
+        public static void SetFile(string directory, string fileName ) 
         {
-            this.FilePath = $"{directory}\\{fileName}";
+            FilePath = $"{directory}\\{fileName}";
         }
     }
 }

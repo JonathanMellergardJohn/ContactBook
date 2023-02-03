@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ContactConsole.Models
 {
-    internal class Contact
+    public class Contact
     {
         // NOTE: how would one create an object in an object here?
         // for instance, if one wanted to group some of the properties

@@ -18,8 +18,9 @@ namespace ContactConsole
 }
 /*
 TO-DO
-    -Check contact book useability
-    -FIX EditContact, input to Postal Code goes into City!
+    -re-write FileService.WriteToFile(). Should accept LIST as argument, not JSON/String!
+    -re-write FileService.ReadFile(): Should return LIST, not JSON/String!
+    -re-write FileService.ReadFile(): should sort List, alphabetically by last name, before returning List!
     -Remove/refactor methods:
         1. Remove AllContactsMenu(), replace with EditContact() and SelectContact()
         2. Remove WriteFile(). 
@@ -37,6 +38,9 @@ TO-DO
                 DeleteContact()
         COMPLETED:
             -Set up GitHub!
+            -commit before starting re-factoring
+            -Check contact book useability
+            -FIX EditContact, input to Postal Code goes into City!
 LIST OF ESSENTIAL METHODS
 EditContact() 
     DisplayContactForEditing()
