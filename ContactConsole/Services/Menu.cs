@@ -188,13 +188,31 @@ namespace ContactConsole.Services
 
             return selectedContact;
         }
-        public static void DeleteContact(Contact contactToDelete)
+        public static bool DeleteContact(Contact contactToDelete)
         {
             int index = contactToDelete.LastIndex;
+            bool stillEditing = false;
 
             List<Contact> contactList = FileService.ReadFromFile();
-            contactList.RemoveAt(index);
-            FileService.WriteToFile(contactList);
+            Console.WriteLine($"Are you sure you want to delete the contact " +
+                $"{contactToDelete.FirstName} {contactToDelete.LastName}? (y/n)");
+            string input = Console.ReadLine();
+            if (input == "y")
+            {
+                contactList.RemoveAt(index);
+                FileService.WriteToFile(contactList);
+                Console.WriteLine($"The contact '{contactToDelete.FirstName} {contactToDelete.LastName}' was removed from the contact book. Press enter key to return to main menu.");
+                Console.ReadLine();
+
+            } else
+            {
+                stillEditing = true;
+                Console.WriteLine("Contact was not deleted. Press enter to resume editing.");
+                Console.ReadLine();
+                Console.Clear();
+            }
+            return stillEditing;
+            
         }
         public static void EditContact(Contact contactToEdit)
         {
@@ -227,10 +245,8 @@ namespace ContactConsole.Services
                 switch (selection)
                 {
                     case "DELETE CONTACT":
-                        DeleteContact(contact);
-                        Console.WriteLine($"The contact '{contact.FirstName} {contact.LastName}' was removed from the contact book. Press enter key to return to main menu.");
-                        Console.ReadLine();
-                        stillEditing = false;
+                        
+                        stillEditing = DeleteContact(contact);
                         break;
 
                     case "1":
